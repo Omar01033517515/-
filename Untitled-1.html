@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>رَوْح</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Tahoma;
+    background: #edededf5;
+    color: #050505;
+}
+header {
+    background: linear-gradient(90deg, rgb(0, 0, 0), #000000);
+    color: #fffafa;
+    padding: 20px;
+    text-align: center;
+    font-size: 60px;
+    font-weight: bold;
+}
+.contact {
+    background: #fcf9f9;
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid rgb(255, 255, 255);
+}
+.products {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+.card {
+    background: #111;
+    border: 1px solid rgb(252, 252, 252);
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+}
+.card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+.price {
+    color: gold;
+    font-size: 18px;
+}
+button {
+    margin-top: 10px;
+    background: gold;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.8);
+}
+.modal-content {
+    background: #111;
+    border: 1px solid gold;
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 400px;
+    margin: 100px auto;
+}
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: none;
+}
+</style>
+</head>
+
+<body>
+
+<header>رَوْح</header>
+
+<div class="contact">
+📞 01033517515 | 📧 Oy310208@gmail.com
+</div>
+
+<div class="products" id="products"></div>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h3 id="productName"></h3>
+    <input id="address" placeholder="العنوان بالتفصيل">
+    <input id="phone" placeholder="رقم تليفونك">
+    <button onclick="confirmOrder()">تأكيد الطلب</button>
+  </div>
+</div>
+
+<script>
+let perfumes = JSON.parse(localStorage.getItem("perfumes")) || [];
+let selected = null;
+
+function showProducts(){
+    let box = document.getElementById("products");
+    box.innerHTML = "";
+    perfumes.forEach(p => {
+        box.innerHTML += `
+        <div class="card">
+            <img src="${p.image}">
+            <h3>${p.name}</h3>
+            <div class="price">${p.price} جنيه</div>
+            <button onclick='buy(${JSON.stringify(p)})'>شراء</button>
+        </div>`;
+    });
+}
+
+function buy(p){
+    selected = p;
+    document.getElementById("productName").innerText = p.name;
+    document.getElementById("modal").style.display = "block";
+}
+
+function confirmOrder(){
+    let address = document.getElementById("address").value;
+    let phone = document.getElementById("phone").value;
+    if(!address || !phone){
+        alert("املأ البيانات");
+        return;
+    }
+
+    // 1️⃣ واتساب
+    let msg =
+`طلب جديد
+العطر: ${selected.name}
+السعر: ${selected.price}
+العنوان: ${address}
+رقم العميل: ${phone}`;
+
+    window.open(
+      "https://wa.me/201033517515?text=" + encodeURIComponent(msg),
+      "_blank"
+    );
+
+    // 2️⃣ SMS
+    fetch("send_order.php", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+            name: selected.name,
+            price: selected.price,
+            address,
+            phone
+        })
+    });
+
+    alert("تم إرسال الطلب ✔");
+    document.getElementById("modal").style.display = "none";
+}
+
+showProducts();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Admin - Perfumes</title>
+<style>
+body {
+    font-family: Tahoma;
+    background: #111;
+    color: white;
+    padding: 20px;
+}
+h1 { color: gold; text-align: center; }
+input, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 10px; border: none; }
+button { cursor: pointer; font-weight: bold; }
+button.delete { background: crimson; color: white; }
+.card { background: #222; padding: 10px; margin: 10px 0; display: flex; align-items: center; justify-content: space-between; border-radius: 10px; }
+.card img { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<h1>لوحة تحكم العطور</h1>
+
+<h2>➕ إضافة عطر جديد</h2>
+<input id="name" placeholder="اسم العطر">
+<input id="price" placeholder="السعر">
+<button onclick="askImage()">اختيار صورة</button>
+<input type="file" id="imageInput" style="display:none" accept="image/*">
+<div id="preview"></div>
+<button onclick="add()">إضافة العطر</button>
+
+<h2>🗑️ العطور الحالية</h2>
+<div id="list"></div>
+
+<script>
+let perfumes = JSON.parse(localStorage.getItem("perfumes")) || [];
+let imageData = "";
+
+function save() {
+    localStorage.setItem("perfumes", JSON.stringify(perfumes));
+    display();
+}
+
+function askImage() {
+    if(confirm("هل لديك صورة للعطر؟")) {
+        document.getElementById("imageInput").click();
+    } else {
+        imageData = "";
+    }
+}
+
+document.getElementById("imageInput").addEventListener("change", function(e){
+    let file = e.target.files[0];
+    if(file){
+        let reader = new FileReader();
+        reader.onload = function(){
+            imageData = reader.result;
+            document.getElementById("preview").innerHTML = `<img src="${imageData}" style="width:100px; height:100px; object-fit:cover; border-radius:10px">`;
+        }
+        reader.readAsDataURL(file);
+    }
+});
+
+function add(){
+    let name = document.getElementById("name").value;
+    let price = document.getElementById("price").value;
+    if(!name || !price){
+        alert("اكتب الاسم والسعر");
+        return;
+    }
+    perfumes.push({name, price, image:imageData});
+    save();
+    document.getElementById("name").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("preview").innerHTML = "";
+    imageData = "";
+}
+
+function del(index){
+    if(confirm("متأكد أنك عايز تحذف العطر؟")){
+        perfumes.splice(index,1);
+        save();
+    }
+}
+
+function display(){
+    let list = document.getElementById("list");
+    list.innerHTML = "";
+    perfumes.forEach((p,i)=>{
+        list.innerHTML += `
+        <div class="card">
+            <img src="${p.image ? p.image : 'https://via.placeholder.com/60'}">
+            <div>
+                <b>${p.name}</b><br>
+                <span style="color:gold">${p.price} جنيه</span>
+            </div>
+            <button class="delete" onclick="del(${i})">حذف</button>
+        </div>
+        `;
+    });
+}
+
+display();
+</script>
+</body>
+</html>
